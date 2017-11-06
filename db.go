@@ -67,7 +67,7 @@ func averageColor(img image.Image) [3]float64 {
 		}
 	}
 	pixelCount := float64(bounds.Max.X * bounds.Max.Y)
-	return [3]float64{r/pixelCount, g/pixelCount, b/pixelCount}
+	return [3]float64{r / pixelCount, g / pixelCount, b / pixelCount}
 }
 
 func cloneTileDB() TileDB {
@@ -96,10 +96,9 @@ func resize(in image.Image, newWidth int) image.NRGBA {
 }
 
 func distance(p1 [3]float64, p2 [3]float64) float64 {
-	return math.Sqrt(sq(p2[0] - p1[0]) + sq(p2[1] - p1[1]) + sq(p2[2] - p1[2]))
+	return math.Sqrt(sq(p2[0]-p1[0]) + sq(p2[1]-p1[1]) + sq(p2[2]-p1[2]))
 }
 
 func sq(n float64) float64 {
 	return n * n
 }
-

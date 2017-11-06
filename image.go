@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func cut(origImg image.Image, db *TileDB, tileSize, x1, y1, x2, y2 int) <- chan image.Image {
+func cut(origImg image.Image, db *TileDB, tileSize, x1, y1, x2, y2 int) <-chan image.Image {
 	c := make(chan image.Image)
 	sp := image.Point{0, 0}
 	go func() {
@@ -43,7 +43,7 @@ func cut(origImg image.Image, db *TileDB, tileSize, x1, y1, x2, y2 int) <- chan 
 	return c
 }
 
-func merge(r image.Rectangle, c1, c2, c3, c4 <- chan image.Image) <- chan string {
+func merge(r image.Rectangle, c1, c2, c3, c4 <-chan image.Image) <-chan string {
 	c := make(chan string)
 	go func() {
 		var wg sync.WaitGroup
@@ -66,7 +66,9 @@ func merge(r image.Rectangle, c1, c2, c3, c4 <- chan image.Image) <- chan string
 			case s4, ok4 = <-c4:
 				go copy(newImg, s4.Bounds(), s4, image.Point{r.Max.X / 2, r.Max.Y / 2})
 			}
-			if ok1 && ok2 && ok3 && ok4 { break }
+			if ok1 && ok2 && ok3 && ok4 {
+				break
+			}
 		}
 		wg.Wait()
 		buf := new(bytes.Buffer)
