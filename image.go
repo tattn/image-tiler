@@ -11,6 +11,20 @@ import (
 	"sync"
 )
 
+func tile(origImg image.Image, tileSize int) <-chan string {
+	bounds := origImg.Bounds()
+	db := cloneTileDB()
+
+	// fan-out
+	c1 := cut(origImg, &db, tileSize, bounds.Min.X, bounds.Min.Y, bounds.Max.X/2, bounds.Max.Y/2)
+	c2 := cut(origImg, &db, tileSize, bounds.Max.X/2, bounds.Min.Y, bounds.Max.X, bounds.Max.Y/2)
+	c3 := cut(origImg, &db, tileSize, bounds.Min.X, bounds.Max.Y/2, bounds.Max.X/2, bounds.Max.Y)
+	c4 := cut(origImg, &db, tileSize, bounds.Max.X/2, bounds.Max.Y/2, bounds.Max.X, bounds.Max.Y)
+
+	// fan-in
+	return merge(bounds, c1, c2, c3, c4)
+}
+
 func cut(origImg image.Image, db *TileDB, tileSize, x1, y1, x2, y2 int) <-chan image.Image {
 	c := make(chan image.Image)
 	sp := image.Point{0, 0}

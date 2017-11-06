@@ -58,17 +58,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("failed to decode an uploaded image" + err.Error()))
 		return
 	}
-	bounds := origImg.Bounds()
-	db := cloneTileDB()
 
-	// fan-out
-	c1 := cut(origImg, &db, tileSize, bounds.Min.X, bounds.Min.Y, bounds.Max.X/2, bounds.Max.Y/2)
-	c2 := cut(origImg, &db, tileSize, bounds.Max.X/2, bounds.Min.Y, bounds.Max.X, bounds.Max.Y/2)
-	c3 := cut(origImg, &db, tileSize, bounds.Min.X, bounds.Max.Y/2, bounds.Max.X/2, bounds.Max.Y)
-	c4 := cut(origImg, &db, tileSize, bounds.Max.X/2, bounds.Max.Y/2, bounds.Max.X, bounds.Max.Y)
+	c := tile(origImg, tileSize)
 
-	// fan-in
-	c := merge(bounds, c1, c2, c3, c4)
 	buf := new(bytes.Buffer)
 	jpeg.Encode(buf, origImg, nil)
 	imgBase64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
