@@ -23,9 +23,10 @@ p {font-size: 16px; line-height: 140%; }
     <div class='container'>
       <div class='content'>
         <h1>Image Tiler</h1>
-        <div class="lead">Create a tiled image:</div>
+        <div class="lead">Generate an image like a tile art</div>
 
-        <form class="form form-inline" method="post" action="/tile" enctype="multipart/form-data">
+        <form id="form_upload" class="form form-inline" method="post" action="/tile" enctype="multipart/form-data">
+        <!-- <div id="form_upload" class="form form&#45;inline"> -->
           <select name="tile_size" class="form-control input-lg">
             <option value="10">10</option>
             <option value="15" selected>15</option>
@@ -36,12 +37,58 @@ p {font-size: 16px; line-height: 140%; }
           </select>
 
           <input type="file" name="image" class="form-control input-lg"/>
-          <button class="btn btn-primary btn-lg" type="submit">
+          <a class="btn btn-primary btn-lg submit" id="submit">
             Send
-          </button>
+          </a>
           <p class="help-block">Select the number of pixels and choose a JPEG file to convert into a tiled image.</p>
+        <!-- </div> -->
         </form>
       </div>
+
+      <div id="result">
+        <p class="alert alert-danger"></p>
+        <div class="col-md-6">
+          <img src="" width="100%" id="orig" />
+          <div class="lead">Original</div>
+        </div>
+        <div class="col-md-6">
+          <img src="" width="100%" id="tiled" />
+          <div class="lead">Tiled</div>
+        </div>
+      </div>
     </div>
+  <script>
+$(function() {
+  var form = $('#form_upload');
+  var result = $('#result');
+  var errBox = result.find('.alert-danger');
+  result.hide();
+
+  $('#submit').click(function(e) {
+    $.ajax({
+      url:'/upload',
+      type:'POST',
+      data: new FormData($("#form_upload")[0]),
+      dataType: 'json',
+      processData: false,
+      contentType: false
+    })
+    .done(function(data) {
+      result.show();
+      errBox.hide();
+      $('img#orig').attr('src', 'data:image/jpg;base64,' + data['original']);
+      $('img#tiled').attr('src', 'data:image/jpg;base64,' + data['tiled']);
+      console.log(data);
+      console.log("duration: " + data['duration']);
+    })
+    .fail(function(error) {
+      result.show();
+      errBox.show();
+      errBox.text('Error!: ' + error.responseText);
+      console.log(error);
+    });
+  });
+});
+  </script>
   </body>
 </html>

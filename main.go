@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"image"
@@ -21,8 +22,9 @@ func main() {
 	files := http.FileServer(http.Dir("public"))
 	mux.Handle("/static/", http.StripPrefix("/static/", files))
 
-	mux.HandleFunc("/", upload)
+	mux.HandleFunc("/", index)
 	mux.HandleFunc("/tile", tile)
+	mux.HandleFunc("/upload", upload)
  
 	server := &http.Server{
 		Addr: "127.0.0.1:8080",
@@ -35,16 +37,21 @@ func main() {
 	server.ListenAndServe()
 }
 
-func upload(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("upload.html")
 	t.Execute(w, nil)
 }
 
-func tile(w http.ResponseWriter, r *http.Request) {
+func upload(w http.ResponseWriter, r *http.Request) {
 	t0 := time.Now()
 
 	r.ParseMultipartForm(10485760)
-	file, _, _ := r.FormFile("image")
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		fmt.Println("failed to read an uploaded image", err)
+		w.Write([]byte("failed to read en uploaded image" + err.Error()))
+		return
+	}
 	defer file.Close()
 
 	tileSize, _ := strconv.Atoi(r.FormValue("tile_size"))
@@ -52,6 +59,8 @@ func tile(w http.ResponseWriter, r *http.Request) {
 	origImg, _, err := image.Decode(file)
 	if err != nil {
 		fmt.Println("failed to decode an uploaded image", err)
+		w.Write([]byte("failed to decode an uploaded image" + err.Error()))
+		return
 	}
 	bounds := origImg.Bounds()
 	db := cloneTileDB()
@@ -69,8 +78,9 @@ func tile(w http.ResponseWriter, r *http.Request) {
 	imgBase64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	t1 := time.Now()
-	t, _ := template.ParseFiles("results.html")
-	t.Execute(w, map[string]string{
+	w.Header().Set("Content-Type", "application/json")
+	
+	json.NewEncoder(w).Encode(map[string]string{
 		"original": imgBase64Str,
 		"tiled": <-c,
 		"duration": fmt.Sprintf("%v ", t1.Sub(t0)),
