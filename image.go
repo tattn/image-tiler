@@ -11,6 +11,12 @@ import (
 	"sync"
 )
 
+func base64string(image image.Image) string {
+	buf := new(bytes.Buffer)
+	jpeg.Encode(buf, image, nil)
+	return base64.StdEncoding.EncodeToString(buf.Bytes())
+}
+
 func tile(origImg image.Image, tileSize int) <-chan string {
 	bounds := origImg.Bounds()
 	db := cloneTileDB()
@@ -85,9 +91,8 @@ func merge(r image.Rectangle, c1, c2, c3, c4 <-chan image.Image) <-chan string {
 			}
 		}
 		wg.Wait()
-		buf := new(bytes.Buffer)
-		jpeg.Encode(buf, newImg, nil)
-		c <- base64.StdEncoding.EncodeToString(buf.Bytes())
+		c <- base64string(newImg)
 	}()
 	return c
 }
+

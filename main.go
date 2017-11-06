@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"image"
-	"image/jpeg"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,14 +40,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseMultipartForm(10485760)
 	file, _, err := r.FormFile("image")
+	tileSize, _ := strconv.Atoi(r.FormValue("tile_size"))
+
 	if err != nil {
 		fmt.Println("failed to read an uploaded image", err)
 		w.Write([]byte("failed to read en uploaded image" + err.Error()))
 		return
 	}
 	defer file.Close()
-
-	tileSize, _ := strconv.Atoi(r.FormValue("tile_size"))
 
 	origImg, _, err := image.Decode(file)
 	if err != nil {
@@ -60,10 +57,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := tile(origImg, tileSize)
-
-	buf := new(bytes.Buffer)
-	jpeg.Encode(buf, origImg, nil)
-	imgBase64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
+	imgBase64Str := base64string(origImg)
 
 	t1 := time.Now()
 	w.Header().Set("Content-Type", "application/json")
@@ -74,3 +68,4 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		"duration": fmt.Sprintf("%v ", t1.Sub(t0)),
 	})
 }
+

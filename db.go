@@ -102,3 +102,4 @@ func distance(p1 [3]float64, p2 [3]float64) float64 {
 func sq(n float64) float64 {
 	return n * n
 }
+
