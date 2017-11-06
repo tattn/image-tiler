@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"image"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -19,8 +20,12 @@ func main() {
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/upload", upload)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	server := &http.Server{
-		Addr:    "127.0.0.1:8080",
+		Addr:    "127.0.0.1:" + port,
 		Handler: mux,
 	}
 
