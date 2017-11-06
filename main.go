@@ -23,7 +23,6 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", files))
 
 	mux.HandleFunc("/", index)
-	mux.HandleFunc("/tile", tile)
 	mux.HandleFunc("/upload", upload)
  
 	server := &http.Server{
@@ -38,7 +37,7 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("upload.html")
+	t, _ := template.ParseFiles("index.html")
 	t.Execute(w, nil)
 }
 
